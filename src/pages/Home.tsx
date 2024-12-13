@@ -2,16 +2,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Video, Users } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { useUser } from '@clerk/clerk-react';
 
 export const Home = () => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
-
+  const { user } = useUser();
+  
+  const displayName = user?.firstName || user?.username || 'there';
   return (
     <div className="min-h-screen bg-gray-900 p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-12 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Welcome, {user?.username}!</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Welcome, {displayName}</h1>
           <p className="text-xl text-gray-400">What would you like to do today?</p>
         </header>
 

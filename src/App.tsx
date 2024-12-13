@@ -7,16 +7,31 @@ import { HostStream } from './components/stream/host/HostStream';
 import { AudienceStream } from './components/stream/audience/AudienceStream';
 import { useAuthStore } from './stores/authStore';
 
+import { SignIn, SignOutButton  } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
+
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+  const { isLoaded, userId } = useAuth();
+
+  // If auth is still loading, you might want to show a loader or just return null
+  if (!isLoaded) return null;
+
+  return userId ? <>{children}</> : <Navigate to="/auth" />;
 };
 
 function App() {
+  const { userId } = useAuth();
   return (
     <Router>
+        <header style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px' }}>
+        {userId && (
+          <SignOutButton>
+            <button>Sign Out</button>
+          </SignOutButton>
+        )}
+      </header>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<SignIn />} />
         <Route
           path="/"
           element={
