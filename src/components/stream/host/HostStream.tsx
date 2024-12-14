@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AgoraRTC, { IAgoraRTCClient } from 'agora-rtc-sdk-ng';
-import { agoraConfig } from '../../../config/agora';
-import { StreamControls } from '../StreamControls';
-import { VideoPlayer } from '../VideoPlayer';
-import { ChatMessage } from '../ChatMessage';
-import { ViewersList } from '../ViewersList';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import AgoraRTC, { IAgoraRTCClient } from "agora-rtc-sdk-ng";
+import { agoraConfig } from "../../../config/agora";
+import { StreamControls } from "../StreamControls";
+import { VideoPlayer } from "../VideoPlayer";
+import { ChatMessage } from "../ChatMessage";
+import { ViewersList } from "../ViewersList";
 
 export const HostStream: React.FC = () => {
   const navigate = useNavigate();
@@ -17,20 +17,28 @@ export const HostStream: React.FC = () => {
   const videoRef = useRef<HTMLDivElement>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [messages, setMessages] = useState<{ sender: string; content: string }[]>([]);
-  const [viewers] = useState<string[]>(['Viewer1', 'Viewer2']);
+  const [messages, setMessages] = useState<
+    { sender: string; content: string }[]
+  >([]);
+  const [viewers] = useState<string[]>(["Viewer1", "Viewer2"]);
+  const channelName = "host-channel"; // Ensure the channel name is consistent and defined
 
   useEffect(() => {
     const init = async () => {
-      const rtcClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      const rtcClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
       setClient(rtcClient);
 
       try {
-        await rtcClient.join(agoraConfig.appId, 'host-channel', agoraConfig.token, agoraConfig.uid);
-        
+        await rtcClient.join(
+          agoraConfig.appId,
+          channelName,
+          agoraConfig.token,
+          agoraConfig.uid
+        );
+
         const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
         const videoTrack = await AgoraRTC.createCameraVideoTrack();
-        
+
         setLocalTracks({ audioTrack, videoTrack });
         await rtcClient.publish([audioTrack, videoTrack]);
 
@@ -38,7 +46,7 @@ export const HostStream: React.FC = () => {
           videoTrack.play(videoRef.current);
         }
       } catch (error) {
-        console.error('Failed to initialize stream:', error);
+        console.error("Failed to initialize stream:", error);
       }
     };
 
@@ -51,7 +59,7 @@ export const HostStream: React.FC = () => {
       }
       client?.leave();
     };
-  }, []);
+  }, [channelName]);
 
   const toggleAudio = () => {
     if (localTracks?.audioTrack) {
@@ -73,11 +81,11 @@ export const HostStream: React.FC = () => {
       localTracks.videoTrack?.close();
     }
     await client?.leave();
-    navigate('/');
+    navigate("/");
   };
 
   const handleSendMessage = (message: string) => {
-    setMessages(prev => [...prev, { sender: 'Host', content: message }]);
+    setMessages((prev) => [...prev, { sender: "Host", content: message }]);
   };
 
   return (
@@ -85,7 +93,7 @@ export const HostStream: React.FC = () => {
       <div className="flex-1 p-4">
         <div className="relative h-full">
           <VideoPlayer ref={videoRef} />
-          <StreamControls 
+          <StreamControls
             onEndStream={handleEndStream}
             onToggleAudio={toggleAudio}
             onToggleVideo={toggleVideo}
@@ -97,7 +105,12 @@ export const HostStream: React.FC = () => {
       <div className="w-80 bg-gray-800 p-4 flex flex-col">
         <ViewersList viewers={viewers} />
         <div className="flex-1">
-          <ChatMessage messages={messages} onSendMessage={handleSendMessage} />
+          <ChatMessage
+            channelName={channelName} // Pass the channelName to ChatMessage
+            currentUser="Host" // Identify the current user
+            messages={messages} // Optional: sync messages between host and chat
+            onSendMessage={handleSendMessage} // Handle message sending
+          />
         </div>
       </div>
     </div>
